@@ -12,6 +12,10 @@ import os
 import time
 import pytz
 import subprocess
+import webbrowser
+import re
+from nltk.corpus import stopwords
+from nltk.tokenize import word_tokenize #splits the word
 #GOOGLE CALENDAR API SOURCE = https://developers.google.com/calendar/quickstart/python
 # If modifying these scopes, delete the file token.pickle.
 SCOPES = ['https://www.googleapis.com/auth/calendar.readonly']
@@ -34,7 +38,7 @@ def get_audio():
             print(what_I_said)
         except:
             print("I can not hear what you are saying")
-    return what_I_said.lower()
+    return what_I_said
 
 def authenticate_googleCal():
     """Shows basic usage of the Google Calendar API.
@@ -145,33 +149,98 @@ def get_date(text):
     if day != -1:
         return datetime.date(month=month, day=day, year=year)
 
-# text = get_audio().lower()
-# print(get_date(text))
+def stopwords(phrase):
+    the_word = []
+    split = word_tokenize(command)
+    for word in split:
+        if word not in stopwords:
+            the_word.append(word)
+    return the_word
 
-wake_call = "hey sexy"
+
+
+
+
+
+'''
+
 SERVICE = authenticate_googleCal()
-print("Start Speaking")
+text = get_audio().lower()
+date = get_date(text)
+print(date)
+get_GoogleEvents(date,SERVICE)
+'''
 
-while True:
-    print("LISTENING.....")
-    text = get_audio()
 
+#def main():
+# wake_call = "hey sexy"
+#SERVICE = authenticate_googleCal()
+def assistant(command)
     if text.count(wake_call) > 0:
         speak("I am hearing your sexy voice, what do you need")
-        text = get_audio()
-        CALENDAR_CALLS = ["what do I have", "do I have plans", "events", "am I busy","Google Calendar"]
+        command = get_audio().lower()
+        #print(command)
+        CALENDAR_CALLS = ['what do i have on thursday', 'do i have plans', 'events thursday', 'am i busy','google calendar']
         for phrase in CALENDAR_CALLS:
-            if phrase in text:
-                date = get_date(text)
+            if phrase == command:
+                date = get_date(command)
+                print(date)
                 if date:
                     get_GoogleEvents(date,SERVICE)
                 else:
                     speak("I do not understand you")
+
+        text = 'open reddit'
+        command = 'open reddit nba'
+        if 'open reddit' in command:
+            slice = re.search('open reddit (.*)', command)
+            website_url = 'http://reddit.com'
+            if slice:
+                topic = slice[1]
+                website_url = website_url + '/r/' + topic
+            webbrowser.open(website_url)
+            speak("I have opened reddit" + topic + " page for you")
+        elif 'open' in command:
+            website_url = 'http://www.'
+            slice = re.search('open (.*)', command)
+            if slice:
+                topic = slice[1]
+                website_url = website_url + topic + '.com'
+                webbrowser.open(website_url)
+                speak("I have opened " + topic + "for you")
+            else:
+                speak("please repeat")
+        elif 'launch' in command:
+            slice = re.search('launch (.*)', command)
+            if slice:
+                application = slice[1]
+                convert = application + ".app"
+                subprocess.Popen(['open', "-n", "/Applications/" + convert], stdout= subprocess.PIPE)
+                speak("I have opened" + application + "for you")
+        elif 'wikipedia' in command:
+            stopwords = list(set(stopwords.words('english')))
+            newStopwords = ['definition','what','mean','wikipedia']
+            stopwords.extend(newStopwords)
+            word = stopwords(command)
+            speak(wikipedia.summary(word[0],sentences = 1))
+
         QUIT_CALLS = ['peace','bye','quit']
         for phrase in QUIT_CALLS:
-            if phrase in text:
+            if phrase in command:
                 exit()
-        SPOTIFY = ['open spotify']
-        for phrase in SPOTIFY:
-            if phrase in text:
-                subprocess.call()
+
+def wake_call(key):
+    if key.count() > 0:
+        SERVICE = authenticate_googleCal()
+        print("Listening...")
+        MultipleCommands()
+
+
+def MultipleCommands():
+    while True:
+        assistant(get_audio().lower())
+
+
+def main():
+    key = get_audio()
+    wake_call(key)
