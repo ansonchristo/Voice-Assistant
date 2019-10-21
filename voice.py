@@ -16,6 +16,7 @@ import webbrowser
 import re
 from nltk.corpus import stopwords
 from nltk.tokenize import word_tokenize #splits the word
+import wikipedia
 #GOOGLE CALENDAR API SOURCE = https://developers.google.com/calendar/quickstart/python
 # If modifying these scopes, delete the file token.pickle.
 SCOPES = ['https://www.googleapis.com/auth/calendar.readonly']
@@ -149,17 +150,16 @@ def get_date(text):
     if day != -1:
         return datetime.date(month=month, day=day, year=year)
 
-def stopwords(phrase):
+def Detect_Stopwords(phrase):
+    Assigned_stopwords = list(set(stopwords.words('english')))
+    newStopwords = ['definition','what','mean','wikipedia']
+    Assigned_stopwords.extend(newStopwords)
     the_word = []
-    split = word_tokenize(command)
+    split = word_tokenize(phrase)
     for word in split:
-        if word not in stopwords:
+        if word not in Assigned_stopwords:
             the_word.append(word)
     return the_word
-
-
-
-
 
 
 '''
@@ -175,72 +175,68 @@ get_GoogleEvents(date,SERVICE)
 #def main():
 # wake_call = "hey sexy"
 #SERVICE = authenticate_googleCal()
-def assistant(command)
-    if text.count(wake_call) > 0:
-        speak("I am hearing your sexy voice, what do you need")
-        command = get_audio().lower()
-        #print(command)
-        CALENDAR_CALLS = ['what do i have on thursday', 'do i have plans', 'events thursday', 'am i busy','google calendar']
-        for phrase in CALENDAR_CALLS:
-            if phrase == command:
-                date = get_date(command)
-                print(date)
-                if date:
-                    get_GoogleEvents(date,SERVICE)
-                else:
-                    speak("I do not understand you")
-
-        text = 'open reddit'
-        command = 'open reddit nba'
-        if 'open reddit' in command:
-            slice = re.search('open reddit (.*)', command)
-            website_url = 'http://reddit.com'
-            if slice:
-                topic = slice[1]
-                website_url = website_url + '/r/' + topic
+def assistant(command):
+    SERVICE = authenticate_googleCal()
+    CALENDAR_CALLS = ['what do i have on thursday', 'do i have plans', 'events thursday', 'am i busy','google calendar','what do i have october 22nd']
+    for phrase in CALENDAR_CALLS:
+        if phrase == command:
+            date = get_date(command)
+            print(date)
+            if date:
+                get_GoogleEvents(date,SERVICE)
+            else:
+                speak("I do not understand you")
+    if 'open reddit' in command:
+        slice = re.search('open reddit (.*)', command)
+        website_url = 'http://reddit.com'
+        if slice:
+            topic = slice[1]
+            website_url = website_url + '/r/' + topic
             webbrowser.open(website_url)
             speak("I have opened reddit" + topic + " page for you")
-        elif 'open' in command:
-            website_url = 'http://www.'
-            slice = re.search('open (.*)', command)
-            if slice:
-                topic = slice[1]
-                website_url = website_url + topic + '.com'
-                webbrowser.open(website_url)
-                speak("I have opened " + topic + "for you")
-            else:
-                speak("please repeat")
-        elif 'launch' in command:
-            slice = re.search('launch (.*)', command)
-            if slice:
-                application = slice[1]
-                convert = application + ".app"
-                subprocess.Popen(['open', "-n", "/Applications/" + convert], stdout= subprocess.PIPE)
-                speak("I have opened" + application + "for you")
-        elif 'wikipedia' in command:
-            stopwords = list(set(stopwords.words('english')))
-            newStopwords = ['definition','what','mean','wikipedia']
-            stopwords.extend(newStopwords)
-            word = stopwords(command)
+        else:
+            webbrowser.open(website_url)
+            speak("I have opened reddit page for you")
+    elif 'open' in command:
+        website_url = 'http://www.'
+        slice = re.search('open (.*)', command)
+        if slice:
+            topic = slice[1]
+            website_url = website_url + topic + '.com'
+            webbrowser.open(website_url)
+            speak("I have opened " + topic + "for you")
+        else:
+            speak("Open what")
+    elif 'launch' in command:
+        slice = re.search('launch (.*)', command)
+        if slice:
+            application = slice[1]
+            convert = application + ".app"
+            subprocess.Popen(['open', "-n", "/Applications/" + convert], stdout= subprocess.PIPE)
+            speak("I have launched" + application + "for you")
+            #print("I have launched" + application + "for you")
+        else:
+            speak("Launch what")
+    elif 'wikipedia' in command:
+        word = Detect_Stopwords(command)
+        if word:
             speak(wikipedia.summary(word[0],sentences = 1))
-
-        QUIT_CALLS = ['peace','bye','quit']
-        for phrase in QUIT_CALLS:
-            if phrase in command:
-                exit()
-
-def wake_call(key):
-    if key.count() > 0:
-        SERVICE = authenticate_googleCal()
-        print("Listening...")
-        MultipleCommands()
-
+        else:
+            speak("Please speak with wikipedia")
+    QUIT_CALLS = ['peace','bye','quit']
+    for phrase in QUIT_CALLS:
+        if phrase in command:
+            exit()
 
 def MultipleCommands():
     while True:
         assistant(get_audio().lower())
 
-
 def main():
-    key = get_audio()
-    wake_call(key)
+    wakeup = 'hey sydney'
+    speak("Listening..")
+    text = get_audio().lower()
+    if text.count(wakeup) > 0:
+        speak("I am hearing your sexy voice, what do you need")
+        MultipleCommands()
+main()
